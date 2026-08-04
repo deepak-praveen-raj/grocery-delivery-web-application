@@ -7,17 +7,25 @@ import com.deepak.grocery_delivery.dto.RegisterResponse;
 import com.deepak.grocery_delivery.entity.Role;
 import com.deepak.grocery_delivery.entity.User;
 import com.deepak.grocery_delivery.repository.UserRepository;
+import com.deepak.grocery_delivery.security.JwtService;
 import com.deepak.grocery_delivery.service.AuthService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
+
     private final UserRepository userRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    private final AuthenticationManager authenticationManager;
+
+    private final JwtService jwtService;
 
 
     @Override
@@ -47,6 +55,25 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public LoginResponse login(LoginRequest request) {
-        return null;
+
+       authenticationManager.authenticate(
+               new UsernamePasswordAuthenticationToken(
+                       request.getEmail(),
+                       request.getPassword()
+               )
+       );
+
+       User user = userRepository.findByEmail(request.getEmail()).orElseThrow(() -> new RuntimeException("User not found") );
+
+
+       String token = jwtService.generateToken(user);
+
+       return LoginResponse.builder()
+               .token(token)
+               .message("Login Successful")
+               .build();
+
+
+
     }
 }
