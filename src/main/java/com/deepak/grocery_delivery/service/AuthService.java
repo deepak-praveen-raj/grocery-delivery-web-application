@@ -1,9 +1,9 @@
 package com.deepak.grocery_delivery.service;
 
-import com.deepak.grocery_delivery.dto.LoginRequest;
-import com.deepak.grocery_delivery.dto.LoginResponse;
-import com.deepak.grocery_delivery.dto.RegisterRequest;
-import com.deepak.grocery_delivery.dto.RegisterResponse;
+import com.deepak.grocery_delivery.dto.auth.LoginRequest;
+import com.deepak.grocery_delivery.dto.auth.LoginResponse;
+import com.deepak.grocery_delivery.dto.auth.RegisterRequest;
+import com.deepak.grocery_delivery.dto.auth.RegisterResponse;
 
 public interface AuthService {
 

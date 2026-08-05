@@ -1,9 +1,9 @@
 package com.deepak.grocery_delivery.serviceimpl;
 
-import com.deepak.grocery_delivery.dto.LoginRequest;
-import com.deepak.grocery_delivery.dto.LoginResponse;
-import com.deepak.grocery_delivery.dto.RegisterRequest;
-import com.deepak.grocery_delivery.dto.RegisterResponse;
+import com.deepak.grocery_delivery.dto.auth.LoginRequest;
+import com.deepak.grocery_delivery.dto.auth.LoginResponse;
+import com.deepak.grocery_delivery.dto.auth.RegisterRequest;
+import com.deepak.grocery_delivery.dto.auth.RegisterResponse;
 import com.deepak.grocery_delivery.entity.Role;
 import com.deepak.grocery_delivery.entity.User;
 import com.deepak.grocery_delivery.repository.UserRepository;

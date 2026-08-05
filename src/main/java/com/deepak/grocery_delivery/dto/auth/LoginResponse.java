@@ -1,4 +1,4 @@
-package com.deepak.grocery_delivery.dto;
+package com.deepak.grocery_delivery.dto.auth;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
