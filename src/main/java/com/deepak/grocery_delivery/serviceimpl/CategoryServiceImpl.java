@@ -44,7 +44,26 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryResponse> getAllCategories() {
-        categoryRepository.findAll();
+
+        List<Category> categories = categoryRepository.findAllByOrderByDisplayOrderAsc();
+
+
+        return categories.stream()
+                .map(this::mapToResponse)
+                .toList();
+
+    }
+
+    private CategoryResponse mapToResponse(Category category) {
+
+        return CategoryResponse.builder()
+                .id(category.getId())
+                .name(category.getName())
+                .description(category.getDescription())
+                .imageUrl(category.getImageUrl())
+                .active(category.getActive())
+                .displayOrder(category.getDisplayOrder())
+                .build();
     }
 
     @Override
