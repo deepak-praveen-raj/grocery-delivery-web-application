@@ -10,6 +10,7 @@ public class CategoryResponse {
     private String description;
     private String imageUrl;
     private Boolean active;
+    private Integer displayOrder;
 
 
 }

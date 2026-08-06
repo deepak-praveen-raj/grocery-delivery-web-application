@@ -33,6 +33,9 @@ public class Category {
     @Column(nullable = false)
     private Boolean active = true;
 
+    @Column(name = "display_order")
+    private Integer displayOrder;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
 

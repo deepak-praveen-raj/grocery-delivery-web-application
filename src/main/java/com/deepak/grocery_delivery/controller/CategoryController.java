@@ -6,10 +6,9 @@ import com.deepak.grocery_delivery.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/categories")
@@ -22,7 +21,6 @@ public class CategoryController {
     public ResponseEntity<CategoryResponse> createCategory(
             @RequestBody CategoryRequest request) {
 
-        System.out.println("******** CATEGORY API HIT ********");
 
         CategoryResponse categoryResponse =
                 categoryService.createCategory(request);
@@ -30,6 +28,14 @@ public class CategoryController {
         System.out.println(categoryResponse);
 
         return new ResponseEntity<>(categoryResponse, HttpStatus.CREATED);
+    }
+
+    @GetMapping("/allCategories")
+    public ResponseEntity<List<CategoryResponse>> getAllCategories() {
+
+        return new ResponseEntity<>(categoryService.getAllCategories(), HttpStatus.OK);
+
+
     }
 
 

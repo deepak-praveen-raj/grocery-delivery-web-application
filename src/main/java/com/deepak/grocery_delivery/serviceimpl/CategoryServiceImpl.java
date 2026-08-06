@@ -44,7 +44,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public List<CategoryResponse> getAllCategories() {
-        throw new UnsupportedOperationException("Not supported yet.");
+        categoryRepository.findAll();
     }
 
     @Override
