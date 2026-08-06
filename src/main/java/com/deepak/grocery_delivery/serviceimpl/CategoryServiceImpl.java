@@ -17,29 +17,48 @@ public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository categoryRepository;
 
     @Override
-    public CategoryResponse createCategory(CategoryRequest category) {
-        Category category1 =  new Category();
+    public CategoryResponse createCategory(CategoryRequest request) {
+
+        if(categoryRepository.existsByName(request.getName())) {
+            throw new RuntimeException("Category already exists");
+        }
+
+
+        Category category = new Category();
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+
+        Category savedCategory = categoryRepository.save(category);
+
+        CategoryResponse categoryResponse = new CategoryResponse();
+        categoryResponse.setId(savedCategory.getId());
+        categoryResponse.setName(savedCategory.getName());
+        categoryResponse.setDescription(savedCategory.getDescription());
+        categoryResponse.setImageUrl(savedCategory.getImageUrl());
+        categoryResponse.setActive(savedCategory.getActive());
+
+        return categoryResponse;
 
 
     }
 
     @Override
     public List<CategoryResponse> getAllCategories() {
-        return List.of();
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public CategoryResponse getCategoryById(Long id) {
-        return null;
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public CategoryResponse updateCategory(Long id, CategoryRequest category) {
-        return null;
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 
     @Override
     public void deleteCategory(Long id) {
-
+        throw new UnsupportedOperationException("Not supported yet.");
     }
 }

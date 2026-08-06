@@ -60,6 +60,8 @@ public class AuthServiceImpl implements AuthService {
                new UsernamePasswordAuthenticationToken(
                        request.getEmail(),
                        request.getPassword()
+
+
                )
        );
 

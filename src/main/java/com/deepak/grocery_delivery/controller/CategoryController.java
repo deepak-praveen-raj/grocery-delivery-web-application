@@ -1,4 +1,39 @@
 package com.deepak.grocery_delivery.controller;
 
+import com.deepak.grocery_delivery.dto.category.CategoryRequest;
+import com.deepak.grocery_delivery.dto.category.CategoryResponse;
+import com.deepak.grocery_delivery.service.CategoryService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@RestController
+@RequestMapping("/api/categories")
+@RequiredArgsConstructor
 public class CategoryController {
+
+    private final CategoryService categoryService;
+
+    @PostMapping
+    public ResponseEntity<CategoryResponse> createCategory(
+            @RequestBody CategoryRequest request) {
+
+        System.out.println("******** CATEGORY API HIT ********");
+
+        CategoryResponse categoryResponse =
+                categoryService.createCategory(request);
+
+        System.out.println(categoryResponse);
+
+        return new ResponseEntity<>(categoryResponse, HttpStatus.CREATED);
+    }
+
+
+
+
+
 }

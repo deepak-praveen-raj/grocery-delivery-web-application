@@ -29,10 +29,10 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(loginRequest));
     }
 
-    @GetMapping("/categories")
-    public ResponseEntity<String> getCategories() {
-        return new ResponseEntity<>("Categories", HttpStatus.OK);
-    }
+//    @GetMapping("/categories")
+//    public ResponseEntity<String> getCategories() {
+//        return new ResponseEntity<>("Categories", HttpStatus.OK);
+//    }
 
 
 
