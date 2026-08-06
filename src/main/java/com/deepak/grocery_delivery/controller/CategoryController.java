@@ -38,6 +38,13 @@ public class CategoryController {
 
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<CategoryResponse> getCategoryById(@PathVariable Long id) {
+
+        return new ResponseEntity<>(categoryService.getCategoryById(id), HttpStatus.OK);
+
+    }
+
 
 
 

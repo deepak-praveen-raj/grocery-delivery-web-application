@@ -68,7 +68,9 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public CategoryResponse getCategoryById(Long id) {
-        throw new UnsupportedOperationException("Not supported yet.");
+        Category category = categoryRepository.findById(id).orElseThrow(() ->new RuntimeException("category not found"));
+
+        return mapToResponse(category);
     }
 
     @Override
