@@ -46,7 +46,7 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public List<CategoryResponse> getAllCategories() {
 
-        List<Category> categories = categoryRepository.findAllByOrderByDisplayOrderAsc();
+        List<Category> categories = categoryRepository.findByActiveTrueOrderByDisplayOrderAsc();
 
 
         return categories.stream()
@@ -105,7 +105,12 @@ public class CategoryServiceImpl implements CategoryService {
                 .orElseThrow(() ->
                         new RuntimeException("Category not found"));
 
-        categoryRepository.delete(category);
+//        categoryRepository.delete(category);
+
+        category.setActive(false);
+        categoryRepository.save(category);
+
+
     }
 
 }
