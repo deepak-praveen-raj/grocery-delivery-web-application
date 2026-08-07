@@ -100,6 +100,12 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Override
     public void deleteCategory(Long id) {
-        throw new UnsupportedOperationException("Not supported yet.");
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Category not found"));
+
+        categoryRepository.delete(category);
     }
+
 }
