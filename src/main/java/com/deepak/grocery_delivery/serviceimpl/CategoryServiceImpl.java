@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -74,8 +75,27 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryResponse updateCategory(Long id, CategoryRequest category) {
-        throw new UnsupportedOperationException("Not supported yet.");
+    public CategoryResponse updateCategory(Long id,CategoryRequest request) {
+
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Category not found"));
+
+
+        if(!category.getName().equalsIgnoreCase(request.getName()) && categoryRepository.existsByName(request.getName())) {
+            throw new RuntimeException("Category already exists");
+        }
+
+
+        category.setName(request.getName());
+        category.setDescription(request.getDescription());
+        category.setDisplayOrder(request.getDisplayOrder());
+
+        Category savedCategory = categoryRepository.save(category);
+
+        return mapToResponse(savedCategory);
+
+
+
     }
 
     @Override
