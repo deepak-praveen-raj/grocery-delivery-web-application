@@ -3,6 +3,7 @@ package com.deepak.grocery_delivery.controller;
 import com.deepak.grocery_delivery.dto.category.CategoryRequest;
 import com.deepak.grocery_delivery.dto.category.CategoryResponse;
 import com.deepak.grocery_delivery.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,15 +20,10 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<CategoryResponse> createCategory(
-            @RequestBody CategoryRequest request) {
+            @Valid @RequestBody CategoryRequest request) {
 
-
-        CategoryResponse categoryResponse =
-                categoryService.createCategory(request);
-
-        System.out.println(categoryResponse);
-
-        return new ResponseEntity<>(categoryResponse, HttpStatus.CREATED);
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(categoryService.createCategory(request));
     }
 
     @GetMapping("/allCategories")
