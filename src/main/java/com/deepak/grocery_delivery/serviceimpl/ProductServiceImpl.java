@@ -62,7 +62,14 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getProductById(Long id) {
-        throw new UnsupportedOperationException("Not implemented yet");
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+
+        return mapToResponse(product);
+
+
     }
 
     @Override
