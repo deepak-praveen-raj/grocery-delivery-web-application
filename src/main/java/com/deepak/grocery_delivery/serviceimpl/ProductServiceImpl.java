@@ -74,7 +74,38 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse updateProduct(Long id, ProductRequest request) {
-        throw new UnsupportedOperationException("Not implemented yet");
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found"));
+
+
+        if (!product.getSku().equalsIgnoreCase(request.getSku())
+                && productRepository.existsBySku(request.getSku())) {
+
+            throw new RuntimeException("SKU already exists");
+        }
+
+        // Find the new category
+        Category category = categoryRepository.findById(request.getCategoryId())
+                .orElseThrow(() ->
+                        new RuntimeException("Category not found"));
+
+        // Update product fields
+        product.setName(request.getName());
+        product.setDescription(request.getDescription());
+        product.setPrice(request.getPrice());
+        product.setDiscountPrice(request.getDiscountPrice());
+        product.setStockQuantity(request.getStockQuantity());
+        product.setSku(request.getSku());
+        product.setBrand(request.getBrand());
+        product.setUnit(request.getUnit());
+        product.setWeight(request.getWeight());
+        product.setCategory(category);
+
+        Product updatedProduct = productRepository.save(product);
+
+        return mapToResponse(updatedProduct);
+
     }
 
     @Override
