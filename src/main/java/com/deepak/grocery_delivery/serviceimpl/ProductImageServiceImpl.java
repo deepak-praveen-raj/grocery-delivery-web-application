@@ -7,6 +7,13 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.util.UUID;
+
 @Service
 @RequiredArgsConstructor
 public class ProductImageServiceImpl implements ProductImageService {
@@ -20,8 +27,61 @@ public class ProductImageServiceImpl implements ProductImageService {
                 .orElseThrow(() ->
                         new RuntimeException("Product not found"));
 
-        // Image upload logic will be added next
+        if (file.isEmpty()) {
+            throw new RuntimeException("Image file is empty");
+        }
 
-        return "Image upload service working";
+        String contentType = file.getContentType();
+
+        if (contentType == null || !contentType.startsWith("image/")) {
+            throw new RuntimeException("Only image files are allowed");
+        }
+
+        try {
+
+            String originalFileName = file.getOriginalFilename();
+
+            String extension = "";
+
+            if (originalFileName != null &&
+                    originalFileName.contains(".")) {
+
+                extension = originalFileName.substring(
+                        originalFileName.lastIndexOf(".")
+                );
+            }
+
+            String fileName =
+                    UUID.randomUUID() + extension;
+
+            Path uploadPath =
+                    Paths.get("uploads/products");
+
+            Files.createDirectories(uploadPath);
+
+            Path filePath =
+                    uploadPath.resolve(fileName);
+
+            Files.copy(
+                    file.getInputStream(),
+                    filePath,
+                    StandardCopyOption.REPLACE_EXISTING
+            );
+
+            String imageUrl =
+                    "/uploads/products/" + fileName;
+
+            product.setImageUrl(imageUrl);
+
+            productRepository.save(product);
+
+            return imageUrl;
+
+        } catch (IOException e) {
+
+            throw new RuntimeException(
+                    "Failed to upload image", e
+            );
+        }
     }
 }
