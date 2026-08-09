@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @RestController
@@ -18,6 +19,8 @@ public class ProductController {
 
     private final ProductService productService;
 
+
+    // CREATE PRODUCT
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(
             @RequestBody ProductRequest request) {
@@ -26,6 +29,8 @@ public class ProductController {
                 .body(productService.createProduct(request));
     }
 
+
+    // GET ALL PRODUCTS
     @GetMapping
     public ResponseEntity<Page<ProductResponse>> getAllProducts(
 
@@ -47,37 +52,53 @@ public class ProductController {
         );
     }
 
+
+    // GET PRODUCT BY ID
     @GetMapping("/{id}")
-    public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
+    public ResponseEntity<ProductResponse> getProductById(
+            @PathVariable Long id) {
 
-        return new  ResponseEntity<>(productService.getProductById(id), HttpStatus.OK);
-
-
+        return ResponseEntity.ok(
+                productService.getProductById(id)
+        );
     }
 
-    @PutMapping("{id}")
-    public ResponseEntity<ProductResponse> updateProduct(@PathVariable Long id,
+
+    // UPDATE PRODUCT
+    @PutMapping("/{id}")
+    public ResponseEntity<ProductResponse> updateProduct(
+            @PathVariable Long id,
             @RequestBody ProductRequest request) {
 
-        return ResponseEntity.ok(productService.updateProduct(id, request));
-
+        return ResponseEntity.ok(
+                productService.updateProduct(id, request)
+        );
     }
 
+
+    // SOFT DELETE PRODUCT
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProductById(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteProductById(
+            @PathVariable Long id) {
 
         productService.deleteProduct(id);
+
         return ResponseEntity.noContent().build();
-
-
     }
 
+
+    // SEARCH PRODUCTS
     @GetMapping("/search")
-    public ResponseEntity<List<ProductResponse>> searchProducts(@RequestParam String keyword) {
+    public ResponseEntity<List<ProductResponse>> searchProducts(
+            @RequestParam String keyword) {
 
-        return ResponseEntity.ok(productService.searchProducts(keyword));
+        return ResponseEntity.ok(
+                productService.searchProducts(keyword)
+        );
     }
 
+
+    // GET PRODUCTS BY CATEGORY
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<Page<ProductResponse>> getProductsByCategory(
 
@@ -103,5 +124,32 @@ public class ProductController {
     }
 
 
+    // GET PRODUCTS BY PRICE RANGE
+    @GetMapping("/filter")
+    public ResponseEntity<Page<ProductResponse>> getProductsByPriceRange(
+
+            @RequestParam BigDecimal minPrice,
+
+            @RequestParam BigDecimal maxPrice,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(defaultValue = "name") String sortBy,
+
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        return ResponseEntity.ok(
+                productService.getProductByPriceRange(
+                        minPrice,
+                        maxPrice,
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                )
+        );
+    }
 
 }

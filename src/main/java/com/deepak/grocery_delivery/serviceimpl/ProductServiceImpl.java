@@ -14,6 +14,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
@@ -179,6 +180,29 @@ public class ProductServiceImpl implements ProductService {
         return productRepository
                 .findByCategoryIdAndActiveTrue(categoryId, pageable)
                 .map(this::mapToResponse);
+    }
+
+    @Override
+    public Page<ProductResponse> getProductByPriceRange(BigDecimal minPrice, BigDecimal maxPrice, int page, int size, String sortBy, String direction) {
+
+        if(minPrice.compareTo(maxPrice) > 0) {
+
+            throw new RuntimeException("Price must be greater than minPrice");
+
+        }
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return productRepository.findByPriceBetweenAndActiveTrue(minPrice,maxPrice,pageable)
+                .map(this::mapToResponse);
+
+
+
     }
 
 

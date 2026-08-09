@@ -4,6 +4,7 @@ import com.deepak.grocery_delivery.dto.product.ProductRequest;
 import com.deepak.grocery_delivery.dto.product.ProductResponse;
 import org.springframework.data.domain.Page;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 public interface ProductService {
@@ -28,6 +29,19 @@ public interface ProductService {
             int size,
             String sortBy,
             String direction
+    );
+
+
+    Page<ProductResponse> getProductByPriceRange(
+
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+
+
     );
 
 }
