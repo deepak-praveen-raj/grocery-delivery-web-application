@@ -125,6 +125,15 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
+    @Override
+    public List<ProductResponse> searchProducts(String keyword) {
+
+        return productRepository.findByNameContainingIgnoreCaseAndActiveTrue(keyword)
+                .stream()
+                .map(this::mapToResponse)
+                .toList();
+    }
+
     private ProductResponse mapToResponse(Product product) {
 
         return ProductResponse.builder()
