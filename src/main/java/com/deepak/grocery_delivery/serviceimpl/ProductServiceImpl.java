@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +55,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductResponse> getAllProducts() {
 
-        return productRepository.findAll()
+        return productRepository.findByActiveTrue()
                 .stream()
                 .map(this::mapToResponse)
                 .toList();
@@ -110,7 +111,18 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public void deleteProduct(Long id) {
-        throw new UnsupportedOperationException("Not implemented yet");
+
+        Product product = productRepository.findById(id)
+                .orElseThrow(() ->
+                        new RuntimeException("Product not found"));
+
+
+        product.setActive(false);
+
+        productRepository.save(product);
+
+
+
     }
 
     private ProductResponse mapToResponse(Product product) {
