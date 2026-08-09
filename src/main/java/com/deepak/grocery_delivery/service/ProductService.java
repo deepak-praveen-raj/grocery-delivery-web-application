@@ -44,4 +44,15 @@ public interface ProductService {
 
     );
 
+    Page<ProductResponse> filterProducts(
+            String keyword,
+            Long categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
+
 }

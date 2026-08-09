@@ -205,6 +205,40 @@ public class ProductServiceImpl implements ProductService {
 
     }
 
+    @Override
+    public Page<ProductResponse> filterProducts(
+            String keyword,
+            Long categoryId,
+            BigDecimal minPrice,
+            BigDecimal maxPrice,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        if (minPrice != null && maxPrice != null
+                && minPrice.compareTo(maxPrice) > 0) {
+
+            throw new RuntimeException(
+                    "Minimum price cannot be greater than maximum price"
+            );
+        }
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return productRepository.searchProducts(
+                keyword,
+                categoryId,
+                minPrice,
+                maxPrice,
+                pageable
+        ).map(this::mapToResponse);
+    }
+
 
     private ProductResponse mapToResponse(Product product) {
 

@@ -152,4 +152,37 @@ public class ProductController {
         );
     }
 
+    @GetMapping("/filter-products")
+    public ResponseEntity<Page<ProductResponse>> filterProducts(
+
+            @RequestParam(required = false) String keyword,
+
+            @RequestParam(required = false) Long categoryId,
+
+            @RequestParam(required = false) BigDecimal minPrice,
+
+            @RequestParam(required = false) BigDecimal maxPrice,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(defaultValue = "name") String sortBy,
+
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        return ResponseEntity.ok(
+                productService.filterProducts(
+                        keyword,
+                        categoryId,
+                        minPrice,
+                        maxPrice,
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                )
+        );
+    }
+
 }
