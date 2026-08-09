@@ -8,6 +8,10 @@ import com.deepak.grocery_delivery.repository.CategoryRepository;
 import com.deepak.grocery_delivery.repository.ProductRepository;
 import com.deepak.grocery_delivery.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -53,13 +57,31 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public List<ProductResponse> getAllProducts() {
+    public Page<ProductResponse> getAllProducts(
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
 
-        return productRepository.findByActiveTrue()
-                .stream()
-                .map(this::mapToResponse)
-                .toList();
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return productRepository
+                .findByActiveTrue(pageable)
+                .map(this::mapToResponse);
     }
+
+//    @Override
+//    public List<ProductResponse> getAllProducts() {
+//
+//        return productRepository.findByActiveTrue()
+//                .stream()
+//                .map(this::mapToResponse)
+//                .toList();
+//    }
 
     @Override
     public ProductResponse getProductById(Long id) {

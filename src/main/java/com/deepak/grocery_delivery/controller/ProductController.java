@@ -4,6 +4,7 @@ import com.deepak.grocery_delivery.dto.product.ProductRequest;
 import com.deepak.grocery_delivery.dto.product.ProductResponse;
 import com.deepak.grocery_delivery.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,12 +27,24 @@ public class ProductController {
     }
 
     @GetMapping
-    public ResponseEntity<List<ProductResponse>> getAllProducts() {
+    public ResponseEntity<Page<ProductResponse>> getAllProducts(
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(defaultValue = "name") String sortBy,
+
+            @RequestParam(defaultValue = "asc") String direction) {
 
         return ResponseEntity.ok(
-                productService.getAllProducts()
+                productService.getAllProducts(
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                )
         );
-
     }
 
     @GetMapping("/{id}")
