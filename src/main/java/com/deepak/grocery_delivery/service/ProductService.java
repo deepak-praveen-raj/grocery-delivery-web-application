@@ -22,4 +22,12 @@ public interface ProductService {
 
     List<ProductResponse> searchProducts(String keyword);
 
+    Page<ProductResponse> getProductsByCategory(
+            Long categoryId,
+            int page,
+            int size,
+            String sortBy,
+            String direction
+    );
+
 }

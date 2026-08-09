@@ -12,13 +12,18 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     boolean existsBySku(String sku);
 
-    List<Product> findByActiveTrue();
+//    List<Product> findByActiveTrue();
 
     List<Product> findByNameContainingIgnoreCaseAndActiveTrue(String name);
 
     Page<Product> findByActiveTrue(Pageable pageable);
 
     Optional<Product> findByIdAndActiveTrue(Long id);
+
+    Page<Product> findByCategoryIdAndActiveTrue(
+            Long categoryId,
+            Pageable pageable
+    );
 
 
 

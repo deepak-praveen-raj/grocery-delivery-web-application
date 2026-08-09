@@ -157,6 +157,31 @@ public class ProductServiceImpl implements ProductService {
                 .toList();
     }
 
+    @Override
+    public Page<ProductResponse> getProductsByCategory(
+            Long categoryId,
+            int page,
+            int size,
+            String sortBy,
+            String direction) {
+
+        // Verify category exists
+        categoryRepository.findById(categoryId)
+                .orElseThrow(() ->
+                        new RuntimeException("Category not found"));
+
+        Sort sort = direction.equalsIgnoreCase("desc")
+                ? Sort.by(sortBy).descending()
+                : Sort.by(sortBy).ascending();
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+
+        return productRepository
+                .findByCategoryIdAndActiveTrue(categoryId, pageable)
+                .map(this::mapToResponse);
+    }
+
+
     private ProductResponse mapToResponse(Product product) {
 
         return ProductResponse.builder()

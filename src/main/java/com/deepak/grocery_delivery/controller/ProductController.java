@@ -78,6 +78,30 @@ public class ProductController {
         return ResponseEntity.ok(productService.searchProducts(keyword));
     }
 
+    @GetMapping("/category/{categoryId}")
+    public ResponseEntity<Page<ProductResponse>> getProductsByCategory(
+
+            @PathVariable Long categoryId,
+
+            @RequestParam(defaultValue = "0") int page,
+
+            @RequestParam(defaultValue = "10") int size,
+
+            @RequestParam(defaultValue = "name") String sortBy,
+
+            @RequestParam(defaultValue = "asc") String direction) {
+
+        return ResponseEntity.ok(
+                productService.getProductsByCategory(
+                        categoryId,
+                        page,
+                        size,
+                        sortBy,
+                        direction
+                )
+        );
+    }
+
 
 
 }
