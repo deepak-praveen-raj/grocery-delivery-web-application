@@ -168,8 +168,19 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartResponse getCart(String email) {
-        throw new UnsupportedOperationException(
-                "Not supported yet.");
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email does not exist"));
+
+
+        Cart cart =  cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+
+        return buildCartResponse(cart);
+
+
+
+
     }
 
 
@@ -179,8 +190,44 @@ public class CartServiceImpl implements CartService {
             Long cartItemId,
             UpdateCartItemRequest request) {
 
-        throw new UnsupportedOperationException(
-                "Not supported yet.");
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email does not exist"));
+
+
+        if(request.getQuantity() == null || request.getQuantity() <= 0) {
+
+            throw new RuntimeException("Quantity must be greater than zero");
+
+        }
+
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+
+        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(()-> new RuntimeException("Item not found"));
+
+
+        if(!cartItem.getCart()
+                .getId()
+                .equals(cart.getId())) {
+            throw new RuntimeException("Cart item does not belong to this user");
+        }
+
+        Product product = cartItem.getProduct();
+
+        if(request.getQuantity() > product.getStockQuantity()) {
+
+            throw new RuntimeException("Insufficient stock");
+
+        }
+
+        cartItem.setQuantity(request.getQuantity());
+
+        cartItemRepository.save(cartItem);
+
+        return buildCartResponse(cart);
+
+
     }
 
 
