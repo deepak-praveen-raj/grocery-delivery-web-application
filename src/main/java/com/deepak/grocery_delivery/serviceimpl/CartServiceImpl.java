@@ -116,8 +116,8 @@ public class CartServiceImpl implements CartService {
     private CartResponse buildCartResponse(Cart cart) {
 
         List<CartItemResponse> items =
-                cartItemRepository
-                        .findAll()
+
+                cartItemRepository.findByCart(cart)
                         .stream()
                         .filter(item ->
                                 item.getCart()
@@ -236,14 +236,47 @@ public class CartServiceImpl implements CartService {
             String email,
             Long cartItemId) {
 
-        throw new UnsupportedOperationException(
-                "Not supported yet.");
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email does not exist"));
+
+        Cart cart = cartRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        CartItem cartItem = cartItemRepository.findById(cartItemId).orElseThrow(()-> new RuntimeException("Item not found"));
+
+
+        if (!cartItem.getCart()
+                .getId()
+                .equals(cart.getId())) {
+
+            throw new RuntimeException(
+                    "Cart item does not belong to this user");
+        }
+
+        cartItemRepository.delete(cartItem);
+
+
+
     }
 
 
     @Override
     public void clearCart(String email) {
-        throw new UnsupportedOperationException(
-                "Not supported yet.");
+
+        User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email does not exist"));
+
+        Cart cart =  cartRepository.findByUser(user).orElseThrow(() -> new RuntimeException("Cart not found"));
+
+
+        cartItemRepository.deleteByCart(cart);
+
+//        cartItemRepository.deleteAll(
+//                cartItemRepository.findAll()
+//                        .stream()
+//                        .filter(item ->
+//                                item.getCart().getId().equals(cart.getId()))
+//                        .toList()
+//        );
+
+
     }
 }
