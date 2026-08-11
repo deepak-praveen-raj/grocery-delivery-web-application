@@ -55,4 +55,8 @@ public interface ProductService {
             String direction
     );
 
+    void increaseStock(Long productId, Integer quantity);
+
+    void decreaseStock(Long productId, Integer quantity);
+
 }

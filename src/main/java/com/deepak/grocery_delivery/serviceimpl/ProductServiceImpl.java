@@ -239,6 +239,52 @@ public class ProductServiceImpl implements ProductService {
         ).map(this::mapToResponse);
     }
 
+    @Override
+    public void increaseStock(Long productId, Integer quantity) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new RuntimeException("Product not found"));
+
+        if (quantity == null || quantity <= 0) {
+            throw new RuntimeException(
+                    "Quantity must be greater than zero"
+            );
+        }
+
+        product.setStockQuantity(
+                product.getStockQuantity() + quantity
+        );
+
+        productRepository.save(product);
+    }
+
+    @Override
+    public void decreaseStock(Long productId, Integer quantity) {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() ->
+                        new RuntimeException("Product not found"));
+
+        if (quantity == null || quantity <= 0) {
+            throw new RuntimeException(
+                    "Quantity must be greater than zero"
+            );
+        }
+
+        if (product.getStockQuantity() < quantity) {
+            throw new RuntimeException(
+                    "Insufficient stock"
+            );
+        }
+
+        product.setStockQuantity(
+                product.getStockQuantity() - quantity
+        );
+
+        productRepository.save(product);
+    }
+
 
     private ProductResponse mapToResponse(Product product) {
 

@@ -185,4 +185,29 @@ public class ProductController {
         );
     }
 
+    @PatchMapping("/{id}/stock/increase")
+    public ResponseEntity<String> increaseStock(
+            @PathVariable Long id,
+            @RequestParam Integer quantity) {
+
+        productService.increaseStock(id, quantity);
+
+        return ResponseEntity.ok(
+                "Stock increased successfully"
+        );
+    }
+
+    @PatchMapping("/{id}/stock/decrease")
+    public ResponseEntity<String> decreaseStock(
+            @PathVariable Long id,
+            @RequestParam Integer quantity) {
+
+        productService.decreaseStock(id, quantity);
+
+        return ResponseEntity.ok(
+                "Stock decreased successfully"
+        );
+    }
+
 }
+
