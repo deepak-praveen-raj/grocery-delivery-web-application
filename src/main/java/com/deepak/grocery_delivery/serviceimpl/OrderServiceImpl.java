@@ -209,6 +209,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public OrderResponse getOrderById(
             String email,
             Long orderId) {
@@ -246,6 +247,7 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
+    @Transactional
     public void cancelOrder(
             String email,
             Long orderId) {
