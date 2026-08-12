@@ -11,6 +11,9 @@ import com.deepak.grocery_delivery.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import com.deepak.grocery_delivery.entity.Cart;
+import com.deepak.grocery_delivery.entity.CartItem;
+import com.deepak.grocery_delivery.entity.Product;
 
 import java.util.UUID;
 
