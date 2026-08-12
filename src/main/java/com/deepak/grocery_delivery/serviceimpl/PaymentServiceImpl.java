@@ -32,6 +32,7 @@ public class PaymentServiceImpl implements PaymentService {
             String email,
             PaymentRequest request) {
 
+
         // 1. Find logged-in user
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
