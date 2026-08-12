@@ -23,6 +23,8 @@ public class PaymentResponse {
 
     private String transactionId;
 
+    private String razorpayOrderId;
+
     private String paymentMethod;
 
     private LocalDateTime createdAt;

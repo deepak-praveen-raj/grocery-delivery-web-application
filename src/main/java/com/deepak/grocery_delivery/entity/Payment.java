@@ -33,6 +33,9 @@ public class Payment {
     @Column(name = "transaction_id", unique = true)
     private String transactionId;
 
+    @Column(name = "razorpay_order_id", unique = true)
+    private String razorpayOrderId;
+
     @Column(name = "payment_method", length = 50)
     private String paymentMethod;
 

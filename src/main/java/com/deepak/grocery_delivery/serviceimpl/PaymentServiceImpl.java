@@ -175,6 +175,9 @@ public class PaymentServiceImpl implements PaymentService {
                 .transactionId(
                         payment.getTransactionId()
                 )
+                .razorpayOrderId(
+                        payment.getRazorpayOrderId()
+                )
                 .paymentMethod(
                         payment.getPaymentMethod()
                 )
