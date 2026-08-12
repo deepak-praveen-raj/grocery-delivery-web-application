@@ -219,11 +219,20 @@ public class OrderServiceImpl implements OrderService {
 
 
     @Override
+    @Transactional(readOnly = true)
     public List<OrderResponse> getMyOrders(
             String email) {
 
-        throw new UnsupportedOperationException(
-                "Not supported yet.");
+        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+
+
+        List<Order> orders = orderRepository.findByUserOrderByCreatedAtDesc(user);
+
+        return orders.stream()
+                .map(this::mapToOrderResponse)
+                .toList();
+
+
     }
 
 
