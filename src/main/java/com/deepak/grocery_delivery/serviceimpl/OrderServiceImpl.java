@@ -250,7 +250,35 @@ public class OrderServiceImpl implements OrderService {
             String email,
             Long orderId) {
 
-        throw new UnsupportedOperationException(
-                "Not supported yet.");
+        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+
+        Order order = orderRepository.findByIdAndUser(orderId,user)
+                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+
+        if(order.getStatus() != OrderStatus.PENDING) {
+            throw new RuntimeException("Order cannot be cancelled");
+        }
+
+        for(OrderItem orderItem : order.getItems()) {
+
+            Product product = orderItem.getProduct();
+
+            product.setStockQuantity(product.getStockQuantity() + orderItem.getQuantity());
+
+            productRepository.save(product);
+
+
+        }
+
+
+
+        order.setStatus(OrderStatus.CANCELLED);
+        orderRepository.save(order);
+
+
+
+
+
     }
 }
