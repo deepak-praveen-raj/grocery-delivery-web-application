@@ -23,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +59,17 @@ public class OrderServiceImpl implements OrderService {
 
             throw new RuntimeException(
                     "Cannot create order from an empty cart");
+        }
+
+        Optional<Order> pendingOrder =
+                orderRepository.findByUserAndStatus(
+                        user,
+                        OrderStatus.PENDING
+                );
+
+        if (pendingOrder.isPresent()) {
+            throw new RuntimeException(
+                    "You already have a pending order");
         }
 
 
@@ -140,11 +152,19 @@ public class OrderServiceImpl implements OrderService {
                     totalAmount.add(subtotal);
 
 
-            // 12. Reduce stock
-            product.setStockQuantity(
-                    product.getStockQuantity()
-                            - cartItem.getQuantity()
-            );
+//            // 12. Reduce stock
+//            product.setStockQuantity(
+//                    product.getStockQuantity()
+//                            - cartItem.getQuantity()
+//            );
+
+            if (cartItem.getQuantity()
+                    > product.getStockQuantity()) {
+
+                throw new RuntimeException(
+                        "Insufficient stock for product: "
+                                + product.getName());
+            }
 
             productRepository.save(product);
         }
@@ -154,17 +174,23 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
 
 
+
+//        // 15. Clear cart
+//        cart.getItems().clear();
+
+
+
+        order.setTotalAmount(totalAmount);
+
         // 14. Save order
         Order savedOrder =
                 orderRepository.save(order);
 
 
-        // 15. Clear cart
-        cart.getItems().clear();
 
-
-        // 16. Return response
         return mapToOrderResponse(savedOrder);
+
+
     }
 
 

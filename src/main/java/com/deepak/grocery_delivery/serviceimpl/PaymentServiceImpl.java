@@ -2,11 +2,8 @@ package com.deepak.grocery_delivery.serviceimpl;
 
 import com.deepak.grocery_delivery.dto.payment.PaymentRequest;
 import com.deepak.grocery_delivery.dto.payment.PaymentResponse;
-import com.deepak.grocery_delivery.entity.Order;
-import com.deepak.grocery_delivery.entity.OrderStatus;
-import com.deepak.grocery_delivery.entity.Payment;
-import com.deepak.grocery_delivery.entity.PaymentStatus;
-import com.deepak.grocery_delivery.entity.User;
+import com.deepak.grocery_delivery.entity.*;
+import com.deepak.grocery_delivery.repository.CartRepository;
 import com.deepak.grocery_delivery.repository.OrderRepository;
 import com.deepak.grocery_delivery.repository.PaymentRepository;
 import com.deepak.grocery_delivery.repository.UserRepository;
@@ -24,6 +21,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepository;
     private final OrderRepository orderRepository;
     private final UserRepository userRepository;
+    private final CartRepository cartRepository;
 
     @Override
     @Transactional
@@ -67,6 +65,35 @@ public class PaymentServiceImpl implements PaymentService {
 
         if (paymentSuccessful) {
 
+            Cart cart = cartRepository.findByUser(user)
+                    .orElseThrow(() ->
+                            new RuntimeException("Cart not found"));
+
+            for (CartItem cartItem : cart.getItems()) {
+
+                Product product = cartItem.getProduct();
+
+                if (!Boolean.TRUE.equals(product.getActive())) {
+
+                    throw new RuntimeException(
+                            "Product is no longer available: "
+                                    + product.getName());
+                }
+
+                if (cartItem.getQuantity()
+                        > product.getStockQuantity()) {
+
+                    throw new RuntimeException(
+                            "Insufficient stock for product: "
+                                    + product.getName());
+                }
+
+                product.setStockQuantity(
+                        product.getStockQuantity()
+                                - cartItem.getQuantity()
+                );
+            }
+
             payment.setStatus(PaymentStatus.PAID);
 
             payment.setTransactionId(
@@ -81,6 +108,7 @@ public class PaymentServiceImpl implements PaymentService {
                     OrderStatus.CONFIRMED
             );
 
+            cart.getItems().clear();
         } else {
 
             payment.setStatus(
