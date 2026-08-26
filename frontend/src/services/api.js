@@ -20,31 +20,28 @@ api.interceptors.request.use(
                 localStorage.getItem("token");
 
             console.log(
-                "Request:",
+                "REQUEST URL:",
                 config.url
             );
 
             console.log(
-                "Token exists:",
+                "TOKEN EXISTS:",
                 !!token
             );
 
             if (token) {
-
                 config.headers.Authorization =
                     `Bearer ${token}`;
 
                 console.log(
-                    "Authorization header attached"
+                    "AUTHORIZATION HEADER ADDED"
                 );
             }
         }
 
         return config;
     },
-    (error) => {
-        return Promise.reject(error);
-    }
+    (error) => Promise.reject(error)
 );
 
 export default api;

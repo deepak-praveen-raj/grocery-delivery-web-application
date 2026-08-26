@@ -1,4 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import {
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate
+} from "react-router-dom";
+
+import Navbar from "./components/Navbar";
 
 import Login from "./pages/Login";
 import Register from "./pages/Register";
@@ -8,17 +15,27 @@ import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
 import OrderSuccess from "./pages/OrderSuccess";
+import ProductDetails from "./pages/ProductDetails";
+
+
 
 function App() {
 
   return (
     <BrowserRouter>
 
+      <Navbar />
+
       <Routes>
 
         <Route
           path="/"
-          element={<Navigate to="/login" replace />}
+          element={
+            <Navigate
+              to="/login"
+              replace
+            />
+          }
         />
 
         <Route
@@ -30,6 +47,7 @@ function App() {
           path="/register"
           element={<Register />}
         />
+
         <Route
           path="/products"
           element={<Products />}
@@ -39,6 +57,7 @@ function App() {
           path="/cart"
           element={<Cart />}
         />
+
         <Route
           path="/checkout"
           element={<Checkout />}
@@ -57,6 +76,11 @@ function App() {
         <Route
           path="/orders/success"
           element={<OrderSuccess />}
+        />
+
+        <Route
+          path="/products/:productId"
+          element={<ProductDetails />}
         />
 
       </Routes>

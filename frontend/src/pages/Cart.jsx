@@ -6,7 +6,7 @@ import {
     clearCart
 } from "../services/cartService";
 
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 function Cart() {
 
@@ -18,12 +18,17 @@ function Cart() {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
+    const [processingItem, setProcessingItem] = useState(null);
+    const [clearing, setClearing] = useState(false);
 
     const navigate = useNavigate();
+
 
     const loadCart = async () => {
 
         try {
+
+            setError("");
 
             const data = await getCart();
 
@@ -36,7 +41,7 @@ function Cart() {
                 error.response?.data || error.message
             );
 
-            setError("Failed to load cart");
+            setError("Failed to load cart.");
 
         } finally {
 
@@ -44,18 +49,23 @@ function Cart() {
         }
     };
 
+
     useEffect(() => {
         loadCart();
     }, []);
+
 
     const handleIncrease = async (item) => {
 
         try {
 
-            const updatedCart = await updateCartItem(
-                item.id,
-                item.quantity + 1
-            );
+            setProcessingItem(item.id);
+
+            const updatedCart =
+                await updateCartItem(
+                    item.id,
+                    item.quantity + 1
+                );
 
             setCart(updatedCart);
 
@@ -63,10 +73,21 @@ function Cart() {
 
             console.error(
                 "Failed to increase quantity:",
-                error.response?.data || error.message
+                error.response?.data ||
+                error.message
             );
+
+            alert(
+                error.response?.data?.message ||
+                "Unable to increase quantity."
+            );
+
+        } finally {
+
+            setProcessingItem(null);
         }
     };
+
 
     const handleDecrease = async (item) => {
 
@@ -76,10 +97,13 @@ function Cart() {
 
         try {
 
-            const updatedCart = await updateCartItem(
-                item.id,
-                item.quantity - 1
-            );
+            setProcessingItem(item.id);
+
+            const updatedCart =
+                await updateCartItem(
+                    item.id,
+                    item.quantity - 1
+                );
 
             setCart(updatedCart);
 
@@ -87,14 +111,27 @@ function Cart() {
 
             console.error(
                 "Failed to decrease quantity:",
-                error.response?.data || error.message
+                error.response?.data ||
+                error.message
             );
+
+            alert(
+                error.response?.data?.message ||
+                "Unable to decrease quantity."
+            );
+
+        } finally {
+
+            setProcessingItem(null);
         }
     };
+
 
     const handleRemove = async (itemId) => {
 
         try {
+
+            setProcessingItem(itemId);
 
             await removeCartItem(itemId);
 
@@ -104,14 +141,40 @@ function Cart() {
 
             console.error(
                 "Failed to remove item:",
-                error.response?.data || error.message
+                error.response?.data ||
+                error.message
             );
+
+            alert(
+                error.response?.data?.message ||
+                "Unable to remove item."
+            );
+
+        } finally {
+
+            setProcessingItem(null);
         }
     };
 
+
     const handleClearCart = async () => {
 
+        if (cart.items.length === 0) {
+            return;
+        }
+
+        const confirmed =
+            window.confirm(
+                "Are you sure you want to clear your cart?"
+            );
+
+        if (!confirmed) {
+            return;
+        }
+
         try {
+
+            setClearing(true);
 
             await clearCart();
 
@@ -121,108 +184,376 @@ function Cart() {
 
             console.error(
                 "Failed to clear cart:",
-                error.response?.data || error.message
+                error.response?.data ||
+                error.message
             );
+
+            alert(
+                error.response?.data?.message ||
+                "Unable to clear cart."
+            );
+
+        } finally {
+
+            setClearing(false);
         }
     };
 
+
     if (loading) {
-        return <h2>Loading cart...</h2>;
+
+        return (
+            <div className="cart-loading">
+
+                <div className="loading-spinner"></div>
+
+                <p>
+                    Loading your cart...
+                </p>
+
+            </div>
+        );
     }
+
 
     if (error) {
-        return <h2>{error}</h2>;
+
+        return (
+            <div className="cart-error">
+
+                <h2>
+                    Something went wrong
+                </h2>
+
+                <p>
+                    {error}
+                </p>
+
+                <button
+                    onClick={loadCart}
+                >
+                    Try Again
+                </button>
+
+            </div>
+        );
     }
 
-    return (
-        <div>
 
-            <h1>My Cart</h1>
+    return (
+        <div className="cart-page">
+
+            {/* ================================
+                HEADER
+            ================================= */}
+
+            <div className="cart-header">
+
+                <div>
+
+                    <span className="section-label">
+                        SHOPPING CART
+                    </span>
+
+                    <h1>
+                        My Cart
+                    </h1>
+
+                    <p>
+                        Review your items before checkout.
+                    </p>
+
+                </div>
+
+                {cart.items.length > 0 && (
+
+                    <button
+                        className="clear-cart-button"
+                        onClick={handleClearCart}
+                        disabled={clearing}
+                    >
+                        {clearing
+                            ? "Clearing..."
+                            : "Clear Cart"}
+                    </button>
+
+                )}
+
+            </div>
+
+
+            {/* ================================
+                EMPTY CART
+            ================================= */}
 
             {cart.items.length === 0 ? (
 
-                <p>Your cart is empty.</p>
+                <div className="empty-cart">
+
+                    <div className="empty-cart-icon">
+                        🛒
+                    </div>
+
+                    <h2>
+                        Your cart is empty
+                    </h2>
+
+                    <p>
+                        Looks like you haven't added
+                        anything to your cart yet.
+                    </p>
+
+                    <Link
+                        to="/products"
+                        className="continue-shopping-button"
+                    >
+                        Continue Shopping
+                    </Link>
+
+                </div>
 
             ) : (
 
-                <>
-                    {cart.items.map((item) => (
+                <div className="cart-layout">
 
-                        <div key={item.id}>
+                    {/* ================================
+                        CART ITEMS
+                    ================================= */}
 
-                            <h2>{item.productName}</h2>
+                    <div className="cart-items-section">
 
-                            {item.imageUrl && (
-                                <img
-                                    src={item.imageUrl}
-                                    alt={item.productName}
-                                    width="100"
-                                />
-                            )}
+                        <div className="cart-items-header">
 
-                            <p>
-                                Price: ₹{item.price}
-                            </p>
+                            <h2>
+                                Your Items
+                            </h2>
 
-                            <p>
-                                Subtotal: ₹{item.subtotal}
-                            </p>
-
-                            <div>
-
-                                <button
-                                    onClick={() =>
-                                        handleDecrease(item)
-                                    }
-                                    disabled={item.quantity <= 1}
-                                >
-                                    -
-                                </button>
-
-                                <span>
-                                    {" "}
-                                    {item.quantity}{" "}
-                                </span>
-
-                                <button
-                                    onClick={() =>
-                                        handleIncrease(item)
-                                    }
-                                >
-                                    +
-                                </button>
-
-                            </div>
-
-                            <button
-                                onClick={() =>
-                                    handleRemove(item.id)
-                                }
-                            >
-                                Remove
-                            </button>
-
-                            <hr />
+                            <span>
+                                {cart.items.length}{" "}
+                                {cart.items.length === 1
+                                    ? "item"
+                                    : "items"}
+                            </span>
 
                         </div>
-                    ))}
 
-                    <h2>
-                        Total: ₹{cart.totalAmount}
-                    </h2>
 
-                    <button
-                        onClick={handleClearCart}
-                    >
-                        Clear Cart
-                    </button>
+                        <div className="cart-items">
 
-                    <button
-                        onClick={() => navigate("/checkout")}
-                    >
-                        Checkout
-                    </button>
-                </>
+                            {cart.items.map((item) => (
+
+                                <div
+                                    className="cart-item"
+                                    key={item.id}
+                                >
+
+                                    {/* PRODUCT IMAGE */}
+
+                                    <Link
+                                        to={`/products/${item.productId}`}
+                                        className="cart-item-image"
+                                    >
+
+                                        {item.imageUrl ? (
+
+                                            <img
+                                                src={item.imageUrl}
+                                                alt={item.productName}
+                                            />
+
+                                        ) : (
+
+                                            <span>
+                                                🛒
+                                            </span>
+
+                                        )}
+
+                                    </Link>
+
+
+                                    {/* PRODUCT INFO */}
+
+                                    <div className="cart-item-info">
+
+                                        <Link
+                                            to={`/products/${item.productId}`}
+                                            className="cart-item-name"
+                                        >
+                                            {item.productName}
+                                        </Link>
+
+                                        <p className="cart-item-price">
+                                            ₹
+                                            {Number(
+                                                item.price
+                                            ).toFixed(2)}
+                                            {" "}per item
+                                        </p>
+
+
+                                        {/* QUANTITY */}
+
+                                        <div className="cart-quantity">
+
+                                            <button
+                                                onClick={() =>
+                                                    handleDecrease(item)
+                                                }
+                                                disabled={
+                                                    item.quantity <= 1 ||
+                                                    processingItem ===
+                                                        item.id
+                                                }
+                                            >
+                                                −
+                                            </button>
+
+                                            <span>
+                                                {item.quantity}
+                                            </span>
+
+                                            <button
+                                                onClick={() =>
+                                                    handleIncrease(item)
+                                                }
+                                                disabled={
+                                                    processingItem ===
+                                                        item.id
+                                                }
+                                            >
+                                                +
+                                            </button>
+
+                                        </div>
+
+                                    </div>
+
+
+                                    {/* SUBTOTAL + REMOVE */}
+
+                                    <div className="cart-item-right">
+
+                                        <strong>
+                                            ₹
+                                            {Number(
+                                                item.subtotal
+                                            ).toFixed(2)}
+                                        </strong>
+
+                                        <button
+                                            className="remove-item-button"
+                                            onClick={() =>
+                                                handleRemove(item.id)
+                                            }
+                                            disabled={
+                                                processingItem ===
+                                                    item.id
+                                            }
+                                        >
+                                            {processingItem === item.id
+                                                ? "Removing..."
+                                                : "Remove"}
+                                        </button>
+
+                                    </div>
+
+                                </div>
+
+                            ))}
+
+                        </div>
+
+
+                        <Link
+                            to="/products"
+                            className="continue-shopping-link"
+                        >
+                            ← Continue Shopping
+                        </Link>
+
+                    </div>
+
+
+                    {/* ================================
+                        ORDER SUMMARY
+                    ================================= */}
+
+                    <aside className="cart-summary">
+
+                        <h2>
+                            Order Summary
+                        </h2>
+
+
+                        <div className="summary-row">
+
+                            <span>
+                                Subtotal
+                            </span>
+
+                            <span>
+                                ₹
+                                {Number(
+                                    cart.totalAmount
+                                ).toFixed(2)}
+                            </span>
+
+                        </div>
+
+
+                        <div className="summary-row">
+
+                            <span>
+                                Delivery
+                            </span>
+
+                            <span className="free-delivery">
+                                FREE
+                            </span>
+
+                        </div>
+
+
+                        <div className="summary-divider"></div>
+
+
+                        <div className="summary-total">
+
+                            <span>
+                                Total
+                            </span>
+
+                            <strong>
+                                ₹
+                                {Number(
+                                    cart.totalAmount
+                                ).toFixed(2)}
+                            </strong>
+
+                        </div>
+
+
+                        <button
+                            className="checkout-button"
+                            onClick={() =>
+                                navigate("/checkout")
+                            }
+                        >
+                            Proceed to Checkout
+                        </button>
+
+
+                        <div className="secure-checkout">
+
+                            🔒 Secure checkout
+
+                        </div>
+
+                    </aside>
+
+                </div>
+
             )}
 
         </div>

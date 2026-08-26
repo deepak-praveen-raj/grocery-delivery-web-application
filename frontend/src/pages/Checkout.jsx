@@ -19,6 +19,9 @@ function Checkout() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
+    // Display amount after payment information is created
+    const [paymentAmount, setPaymentAmount] = useState(null);
+
     const navigate = useNavigate();
 
 
@@ -31,13 +34,12 @@ function Checkout() {
         event.preventDefault();
 
         if (!shippingAddress.trim()) {
-            setError("Shipping address is required");
+            setError("Shipping address is required.");
             return;
         }
 
         setLoading(true);
         setError("");
-
 
         try {
 
@@ -91,7 +93,6 @@ function Checkout() {
 
             let payment = null;
 
-
             try {
 
                 payment =
@@ -120,9 +121,7 @@ function Checkout() {
 
             if (payment) {
 
-                // ---------------------------------------------
                 // Already paid
-                // ---------------------------------------------
 
                 if (payment.status === "PAID") {
 
@@ -136,9 +135,7 @@ function Checkout() {
                 }
 
 
-                // ---------------------------------------------
                 // Payment exists but Razorpay order ID missing
-                // ---------------------------------------------
 
                 if (!payment.razorpayOrderId) {
 
@@ -176,7 +173,7 @@ function Checkout() {
             if (!payment) {
 
                 throw new Error(
-                    "Payment information not available"
+                    "Payment information not available."
                 );
             }
 
@@ -184,7 +181,7 @@ function Checkout() {
             if (!payment.razorpayOrderId) {
 
                 throw new Error(
-                    "Razorpay Order ID not available"
+                    "Razorpay Order ID not available."
                 );
             }
 
@@ -192,9 +189,18 @@ function Checkout() {
             if (!payment.amount) {
 
                 throw new Error(
-                    "Payment amount not available"
+                    "Payment amount not available."
                 );
             }
+
+
+            // =================================================
+            // SHOW PAYMENT AMOUNT
+            // =================================================
+
+            setPaymentAmount(
+                Number(payment.amount)
+            );
 
 
             // =================================================
@@ -206,7 +212,6 @@ function Checkout() {
                 payment
             );
 
-
         } catch (error) {
 
             console.error(
@@ -214,18 +219,15 @@ function Checkout() {
                 error
             );
 
-
             const message =
                 error.response?.data?.message ||
                 error.response?.data ||
                 error.message ||
-                "Failed to start checkout";
-
+                "Failed to start checkout.";
 
             setError(
                 String(message)
             );
-
 
             setLoading(false);
         }
@@ -348,7 +350,7 @@ function Checkout() {
 
 
                     // =========================================
-                    // VALIDATE RAZORPAY RESPONSE
+                    // VALIDATE RESPONSE
                     // =========================================
 
                     if (
@@ -358,13 +360,13 @@ function Checkout() {
                     ) {
 
                         throw new Error(
-                            "Invalid Razorpay payment response"
+                            "Invalid Razorpay payment response."
                         );
                     }
 
 
                     // =========================================
-                    // VERIFY PAYMENT WITH BACKEND
+                    // VERIFY PAYMENT
                     // =========================================
 
                     console.log(
@@ -397,7 +399,7 @@ function Checkout() {
 
 
                     // =========================================
-                    // CHECK BACKEND PAYMENT STATUS
+                    // CHECK PAYMENT STATUS
                     // =========================================
 
                     if (
@@ -412,7 +414,7 @@ function Checkout() {
 
 
                     // =========================================
-                    // PAYMENT SUCCESS
+                    // SUCCESS
                     // =========================================
 
                     setLoading(false);
@@ -423,7 +425,7 @@ function Checkout() {
 
 
                     // =========================================
-                    // GO TO SUCCESS PAGE
+                    // SUCCESS PAGE
                     // =========================================
 
                     navigate(
@@ -464,13 +466,11 @@ function Checkout() {
                             .response
                             ?.data ||
                         verificationError.message ||
-                        "Payment verification failed";
-
+                        "Payment verification failed.";
 
                     setError(
                         String(message)
                     );
-
 
                     setLoading(false);
                 }
@@ -497,7 +497,7 @@ function Checkout() {
 
             theme: {
 
-                color: "#3399cc"
+                color: "#16a34a"
             }
         };
 
@@ -565,12 +565,10 @@ function Checkout() {
                     response.error
                 );
 
-
                 setError(
                     response.error?.description ||
-                    "Payment failed"
+                    "Payment failed."
                 );
-
 
                 setLoading(false);
             }
@@ -591,68 +589,251 @@ function Checkout() {
 
     return (
 
-        <div>
+        <div className="checkout-page">
 
-            <h1>
-                Checkout
-            </h1>
+            {/* ==========================================
+                HEADER
+            ========================================== */}
+
+            <div className="checkout-header">
+
+                <span className="section-label">
+                    SECURE CHECKOUT
+                </span>
+
+                <h1>
+                    Complete Your Order
+                </h1>
+
+                <p>
+                    Enter your delivery details and
+                    complete your payment securely.
+                </p>
+
+            </div>
 
 
-            <form
-                onSubmit={handleSubmit}
-            >
+            {/* ==========================================
+                MAIN CHECKOUT
+            ========================================== */}
 
-                <div>
-
-                    <label>
-                        Shipping Address
-                    </label>
-
-                    <br />
+            <div className="checkout-layout">
 
 
-                    <textarea
-                        value={shippingAddress}
-                        onChange={(event) =>
-                            setShippingAddress(
-                                event.target.value
-                            )
-                        }
-                        placeholder="Enter your shipping address"
-                        rows="5"
-                        required
-                    />
+                {/* ======================================
+                    DELIVERY INFORMATION
+                ====================================== */}
+
+                <div className="checkout-card">
+
+                    <div className="checkout-card-header">
+
+                        <div className="checkout-step">
+                            1
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Delivery Information
+                            </h2>
+
+                            <p>
+                                Where should we deliver
+                                your groceries?
+                            </p>
+
+                        </div>
+
+                    </div>
+
+
+                    <form
+                        onSubmit={handleSubmit}
+                        className="checkout-form"
+                    >
+
+                        <label>
+                            Shipping Address
+                        </label>
+
+                        <textarea
+                            value={shippingAddress}
+                            onChange={(event) =>
+                                setShippingAddress(
+                                    event.target.value
+                                )
+                            }
+                            placeholder="Enter your complete shipping address..."
+                            rows="6"
+                            required
+                        />
+
+
+                        <div className="address-hint">
+                            Please provide your complete
+                            delivery address including
+                            area and city.
+                        </div>
+
+
+                        {/* ERROR */}
+
+                        {error && (
+
+                            <div className="checkout-error">
+
+                                <span>
+                                    !
+                                </span>
+
+                                <p>
+                                    {error}
+                                </p>
+
+                            </div>
+
+                        )}
+
+
+                        {/* PAYMENT BUTTON */}
+
+                        <button
+                            type="submit"
+                            className="razorpay-button"
+                            disabled={loading}
+                        >
+
+                            {loading ? (
+
+                                <>
+                                    <span className="button-spinner"></span>
+
+                                    Processing...
+                                </>
+
+                            ) : (
+
+                                <>
+                                    Pay Securely with Razorpay
+                                </>
+
+                            )}
+
+                        </button>
+
+
+                        <div className="secure-note">
+
+                            🔒 Your payment is securely
+                            processed by Razorpay.
+
+                        </div>
+
+                    </form>
 
                 </div>
 
 
-                <br />
+                {/* ======================================
+                    ORDER SUMMARY
+                ====================================== */}
+
+                <aside className="checkout-summary">
+
+                    <div className="checkout-summary-header">
+
+                        <div className="checkout-step">
+                            2
+                        </div>
+
+                        <div>
+
+                            <h2>
+                                Payment Summary
+                            </h2>
+
+                            <p>
+                                Review before paying
+                            </p>
+
+                        </div>
+
+                    </div>
 
 
-                {error && (
+                    <div className="summary-content">
 
-                    <p>
-                        {error}
-                    </p>
+                        <div className="checkout-summary-row">
 
-                )}
+                            <span>
+                                Order Amount
+                            </span>
+
+                            <strong>
+                                {paymentAmount !== null
+                                    ? `₹${paymentAmount.toFixed(2)}`
+                                    : "—"}
+                            </strong>
+
+                        </div>
 
 
-                <br />
+                        <div className="checkout-summary-row">
+
+                            <span>
+                                Delivery
+                            </span>
+
+                            <span className="free-text">
+                                FREE
+                            </span>
+
+                        </div>
 
 
-                <button
-                    type="submit"
-                    disabled={loading}
-                >
+                        <div className="checkout-summary-divider"></div>
 
-                    {loading
-                        ? "Processing..."
-                        : "Pay with Razorpay"}
 
-                </button>
+                        <div className="checkout-total-row">
 
-            </form>
+                            <span>
+                                Total
+                            </span>
+
+                            <strong>
+                                {paymentAmount !== null
+                                    ? `₹${paymentAmount.toFixed(2)}`
+                                    : "—"}
+                            </strong>
+
+                        </div>
+
+                    </div>
+
+
+                    <div className="checkout-benefits">
+
+                        <div>
+                            <span>✓</span>
+                            Secure Razorpay payment
+                        </div>
+
+                        <div>
+                            <span>✓</span>
+                            Your payment details are protected
+                        </div>
+
+                        <div>
+                            <span>✓</span>
+                            Order status updated automatically
+                        </div>
+
+                    </div>
+
+                </aside>
+
+            </div>
 
         </div>
     );
