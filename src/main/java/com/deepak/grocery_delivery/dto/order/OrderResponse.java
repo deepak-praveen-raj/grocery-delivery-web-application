@@ -17,6 +17,8 @@ public class OrderResponse {
 
     private Long id;
 
+    private String orderNumber;
+
     private BigDecimal totalAmount;
 
     private OrderStatus status;

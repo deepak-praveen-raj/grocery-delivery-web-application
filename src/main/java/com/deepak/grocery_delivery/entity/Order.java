@@ -21,11 +21,24 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(
+            name = "order_number",
+            unique = true,
+            nullable = false,
+            length = 30
+    )
+    private String orderNumber;
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @Column(name = "total_amount", nullable = false, precision = 10, scale = 2)
+    @Column(
+            name = "total_amount",
+            nullable = false,
+            precision = 10,
+            scale = 2
+    )
     private BigDecimal totalAmount;
 
     @Enumerated(EnumType.STRING)
@@ -33,13 +46,25 @@ public class Order {
     private OrderStatus status;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "payment_status", nullable = false, length = 30)
+    @Column(
+            name = "payment_status",
+            nullable = false,
+            length = 30
+    )
     private PaymentStatus paymentStatus;
 
-    @Column(name = "shipping_address", nullable = false, length = 500)
+    @Column(
+            name = "shipping_address",
+            nullable = false,
+            length = 500
+    )
     private String shippingAddress;
 
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(
+            name = "created_at",
+            nullable = false,
+            updatable = false
+    )
     private LocalDateTime createdAt;
 
     @Column(name = "updated_at")

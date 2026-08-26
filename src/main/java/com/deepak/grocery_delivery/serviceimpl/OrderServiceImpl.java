@@ -35,6 +35,10 @@ public class OrderServiceImpl implements OrderService {
     private final UserRepository userRepository;
 
 
+    // =====================================================
+    // CREATE ORDER
+    // =====================================================
+
     @Override
     @Transactional
     public OrderResponse createOrder(
@@ -42,24 +46,30 @@ public class OrderServiceImpl implements OrderService {
             CreateOrderRequest request) {
 
         // 1. Find logged-in user
+
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() ->
                         new RuntimeException("User not found"));
 
 
         // 2. Find user's cart
+
         Cart cart = cartRepository.findByUser(user)
                 .orElseThrow(() ->
                         new RuntimeException("Cart not found"));
 
 
         // 3. Check cart is not empty
+
         if (cart.getItems() == null ||
                 cart.getItems().isEmpty()) {
 
             throw new RuntimeException(
                     "Cannot create order from an empty cart");
         }
+
+
+        // 4. Check pending order
 
         Optional<Order> pendingOrder =
                 orderRepository.findByUserAndStatus(
@@ -68,12 +78,14 @@ public class OrderServiceImpl implements OrderService {
                 );
 
         if (pendingOrder.isPresent()) {
+
             throw new RuntimeException(
                     "You already have a pending order");
         }
 
 
-        // 4. Validate shipping address
+        // 5. Validate shipping address
+
         if (request.getShippingAddress() == null ||
                 request.getShippingAddress().isBlank()) {
 
@@ -82,11 +94,13 @@ public class OrderServiceImpl implements OrderService {
         }
 
 
-        // 5. Create Order
+        // 6. Create order
+
         Order order = Order.builder()
                 .user(user)
                 .shippingAddress(
-                        request.getShippingAddress())
+                        request.getShippingAddress()
+                )
                 .status(OrderStatus.PENDING)
                 .paymentStatus(PaymentStatus.PENDING)
                 .totalAmount(BigDecimal.ZERO)
@@ -97,12 +111,15 @@ public class OrderServiceImpl implements OrderService {
         BigDecimal totalAmount = BigDecimal.ZERO;
 
 
-        // 6. Convert CartItems → OrderItems
+        // 7. Convert CartItems -> OrderItems
+
         for (CartItem cartItem : cart.getItems()) {
 
             Product product = cartItem.getProduct();
 
-            // 7. Check product is active
+
+            // Check product is active
+
             if (!Boolean.TRUE.equals(
                     product.getActive())) {
 
@@ -112,7 +129,8 @@ public class OrderServiceImpl implements OrderService {
             }
 
 
-            // 8. Check stock
+            // Check stock
+
             if (cartItem.getQuantity()
                     > product.getStockQuantity()) {
 
@@ -122,12 +140,14 @@ public class OrderServiceImpl implements OrderService {
             }
 
 
-            // 9. Get current product price
+            // Current product price
+
             BigDecimal unitPrice =
                     product.getPrice();
 
 
-            // 10. Calculate subtotal
+            // Calculate subtotal
+
             BigDecimal subtotal =
                     unitPrice.multiply(
                             BigDecimal.valueOf(
@@ -136,63 +156,82 @@ public class OrderServiceImpl implements OrderService {
                     );
 
 
-            // 11. Create OrderItem
-            OrderItem orderItem = OrderItem.builder()
-                    .order(order)
-                    .product(product)
-                    .quantity(cartItem.getQuantity())
-                    .unitPrice(unitPrice)
-                    .subtotal(subtotal)
-                    .build();
+            // Create order item
+
+            OrderItem orderItem =
+                    OrderItem.builder()
+                            .order(order)
+                            .product(product)
+                            .quantity(
+                                    cartItem.getQuantity()
+                            )
+                            .unitPrice(unitPrice)
+                            .subtotal(subtotal)
+                            .build();
 
 
             order.getItems().add(orderItem);
 
+
             totalAmount =
                     totalAmount.add(subtotal);
-
-
-//            // 12. Reduce stock
-//            product.setStockQuantity(
-//                    product.getStockQuantity()
-//                            - cartItem.getQuantity()
-//            );
-
-            if (cartItem.getQuantity()
-                    > product.getStockQuantity()) {
-
-                throw new RuntimeException(
-                        "Insufficient stock for product: "
-                                + product.getName());
-            }
-
-            productRepository.save(product);
         }
 
 
-        // 13. Set final order total
-        order.setTotalAmount(totalAmount);
-
-
-
-//        // 15. Clear cart
-//        cart.getItems().clear();
-
-
+        // 8. Set final total
 
         order.setTotalAmount(totalAmount);
 
-        // 14. Save order
+
+        // 9. Save order first
+        //
+        // This generates the database ID.
+
         Order savedOrder =
                 orderRepository.save(order);
 
 
+        // 10. Generate global customer-facing number
+        //
+        // Example:
+        //
+        // id = 13 -> ORD-00013
+        // id = 14 -> ORD-00014
+        // id = 15 -> ORD-00015
 
-        return mapToOrderResponse(savedOrder);
+        String orderNumber =
+                String.format(
+                        "ORD-%05d",
+                        savedOrder.getId()
+                );
 
 
+        // 11. Set order number
+
+        savedOrder.setOrderNumber(
+                orderNumber
+        );
+
+
+        // 12. Save again
+
+        savedOrder =
+                orderRepository.save(
+                        savedOrder
+                );
+
+
+        // 13. Return response
+
+        return mapToOrderResponse(
+                savedOrder
+        );
     }
 
+
+    // =====================================================
+    // MAP ORDER RESPONSE
+    // =====================================================
 
     private OrderResponse mapToOrderResponse(
             Order order) {
@@ -203,36 +242,79 @@ public class OrderServiceImpl implements OrderService {
                         .map(this::mapToOrderItemResponse)
                         .toList();
 
+
         return OrderResponse.builder()
+
                 .id(order.getId())
-                .totalAmount(order.getTotalAmount())
-                .status(order.getStatus())
-                .paymentStatus(order.getPaymentStatus())
+
+                .orderNumber(
+                        order.getOrderNumber()
+                )
+
+                .totalAmount(
+                        order.getTotalAmount()
+                )
+
+                .status(
+                        order.getStatus()
+                )
+
+                .paymentStatus(
+                        order.getPaymentStatus()
+                )
+
                 .shippingAddress(
-                        order.getShippingAddress())
-                .createdAt(order.getCreatedAt())
-                .updatedAt(order.getUpdatedAt())
+                        order.getShippingAddress()
+                )
+
+                .createdAt(
+                        order.getCreatedAt()
+                )
+
+                .updatedAt(
+                        order.getUpdatedAt()
+                )
+
                 .items(items)
+
                 .build();
     }
 
+
+    // =====================================================
+    // MAP ORDER ITEM
+    // =====================================================
 
     private OrderItemResponse mapToOrderItemResponse(
             OrderItem item) {
 
-        Product product = item.getProduct();
+        Product product =
+                item.getProduct();
+
 
         return OrderItemResponse.builder()
+
                 .id(item.getId())
+
                 .productId(product.getId())
+
                 .productName(product.getName())
+
                 .imageUrl(product.getImageUrl())
+
                 .quantity(item.getQuantity())
+
                 .unitPrice(item.getUnitPrice())
+
                 .subtotal(item.getSubtotal())
+
                 .build();
     }
 
+
+    // =====================================================
+    // GET ORDER BY ID
+    // =====================================================
 
     @Override
     @Transactional(readOnly = true)
@@ -240,37 +322,60 @@ public class OrderServiceImpl implements OrderService {
             String email,
             Long orderId) {
 
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        User user =
+                userRepository.findByEmail(email)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User not found"));
 
-        Order order = orderRepository.findByIdAndUser(orderId,user)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        Order order =
+                orderRepository
+                        .findByIdAndUser(
+                                orderId,
+                                user
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Order not found"));
 
 
         return mapToOrderResponse(order);
-
-
-
     }
 
+
+    // =====================================================
+    // GET MY ORDERS
+    // =====================================================
 
     @Override
     @Transactional(readOnly = true)
     public List<OrderResponse> getMyOrders(
             String email) {
 
-        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        User user =
+                userRepository.findByEmail(email)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User not found"));
 
 
-        List<Order> orders = orderRepository.findByUserOrderByCreatedAtDesc(user);
+        List<Order> orders =
+                orderRepository
+                        .findByUserOrderByCreatedAtDesc(
+                                user
+                        );
+
 
         return orders.stream()
                 .map(this::mapToOrderResponse)
                 .toList();
-
-
     }
 
+
+    // =====================================================
+    // CANCEL ORDER
+    // =====================================================
 
     @Override
     @Transactional
@@ -278,35 +383,57 @@ public class OrderServiceImpl implements OrderService {
             String email,
             Long orderId) {
 
-        User user = userRepository.findByEmail(email).orElseThrow(()->new RuntimeException("User not found"));
+        User user =
+                userRepository.findByEmail(email)
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "User not found"));
 
-        Order order = orderRepository.findByIdAndUser(orderId,user)
-                .orElseThrow(() -> new RuntimeException("Order not found"));
+
+        Order order =
+                orderRepository
+                        .findByIdAndUser(
+                                orderId,
+                                user
+                        )
+                        .orElseThrow(() ->
+                                new RuntimeException(
+                                        "Order not found"));
 
 
-        if(order.getStatus() != OrderStatus.PENDING) {
-            throw new RuntimeException("Order cannot be cancelled");
+        if (order.getStatus()
+                != OrderStatus.PENDING) {
+
+            throw new RuntimeException(
+                    "Order cannot be cancelled");
         }
 
-        for(OrderItem orderItem : order.getItems()) {
 
-            Product product = orderItem.getProduct();
+        // Restore stock
 
-            product.setStockQuantity(product.getStockQuantity() + orderItem.getQuantity());
+        for (OrderItem orderItem :
+                order.getItems()) {
+
+            Product product =
+                    orderItem.getProduct();
+
+
+            product.setStockQuantity(
+                    product.getStockQuantity()
+                            + orderItem.getQuantity()
+            );
+
 
             productRepository.save(product);
-
-
         }
 
 
+        // Cancel order
 
-        order.setStatus(OrderStatus.CANCELLED);
+        order.setStatus(
+                OrderStatus.CANCELLED
+        );
+
         orderRepository.save(order);
-
-
-
-
-
     }
 }
