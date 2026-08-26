@@ -34,8 +34,7 @@ function OrderDetails() {
 
             setError("");
 
-            const data =
-                await getOrderById(orderId);
+            const data = await getOrderById(orderId);
 
             setOrder(data);
 
@@ -43,8 +42,7 @@ function OrderDetails() {
 
             console.error(
                 "Failed to load order:",
-                error.response?.data ||
-                error.message
+                error.response?.data || error.message
             );
 
             setError(
@@ -72,15 +70,17 @@ function OrderDetails() {
 
     const handleCancelOrder = async () => {
 
-        const confirmed =
-            window.confirm(
-                `Are you sure you want to cancel Order #${order.id}?`
-            );
+        if (!order) {
+            return;
+        }
+
+        const confirmed = window.confirm(
+            `Are you sure you want to cancel Order #${order.orderNumber || order.id}?`
+        );
 
         if (!confirmed) {
             return;
         }
-
 
         try {
 
@@ -90,19 +90,15 @@ function OrderDetails() {
 
             await cancelOrder(order.id);
 
-            // Reload order so backend status is displayed
             await loadOrder();
 
-            alert(
-                "Order cancelled successfully."
-            );
+            alert("Order cancelled successfully.");
 
         } catch (error) {
 
             console.error(
                 "Failed to cancel order:",
-                error.response?.data ||
-                error.message
+                error.response?.data || error.message
             );
 
             setError(
@@ -141,7 +137,16 @@ function OrderDetails() {
 
 
     // =====================================================
-    // STATUS CLASS
+    // ORDER NUMBER
+    // =====================================================
+
+    const displayOrderNumber =
+        order?.orderNumber ||
+        `ORD-${String(order?.id || "").padStart(5, "0")}`;
+
+
+    // =====================================================
+    // ORDER STATUS CLASS
     // =====================================================
 
     const getOrderStatusClass = (status) => {
@@ -168,6 +173,10 @@ function OrderDetails() {
         }
     };
 
+
+    // =====================================================
+    // PAYMENT STATUS CLASS
+    // =====================================================
 
     const getPaymentStatusClass = (status) => {
 
@@ -283,12 +292,12 @@ function OrderDetails() {
 
         <div className="order-details-page">
 
-
-            {/* ==========================================
-                BACK BUTTON
-            ========================================== */}
-
             <div className="order-details-container">
+
+
+                {/* ==========================================
+                    BACK BUTTON
+                ========================================== */}
 
                 <button
                     className="back-orders-button"
@@ -313,14 +322,12 @@ function OrderDetails() {
                         </span>
 
                         <h1>
-                            Order #{order.id}
+                            Order #{displayOrderNumber}
                         </h1>
 
                         <p>
                             Placed on{" "}
-                            {formatDate(
-                                order.createdAt
-                            )}
+                            {formatDate(order.createdAt)}
                         </p>
 
                     </div>
@@ -346,7 +353,7 @@ function OrderDetails() {
 
 
                 {/* ======================================
-                    ERROR AFTER ORDER EXISTS
+                    ERROR
                 ====================================== */}
 
                 {error && (
@@ -518,7 +525,7 @@ function OrderDetails() {
 
 
                         {/* =================================
-                            ORDER TIMELINE
+                            ORDER STATUS
                         ================================= */}
 
                         <section className="details-card">
@@ -541,6 +548,7 @@ function OrderDetails() {
 
 
                             <div className="order-status-timeline">
+
 
                                 <div className="timeline-item active">
 
@@ -661,7 +669,7 @@ function OrderDetails() {
 
 
                         {/* =================================
-                            PAYMENT SUMMARY
+                            ORDER SUMMARY
                         ================================= */}
 
                         <section className="details-card summary-card">
@@ -674,11 +682,11 @@ function OrderDetails() {
                             <div className="details-summary-row">
 
                                 <span>
-                                    Order ID
+                                    Order Number
                                 </span>
 
                                 <strong>
-                                    #{order.id}
+                                    #{displayOrderNumber}
                                 </strong>
 
                             </div>

@@ -11,6 +11,10 @@ function Orders() {
     const navigate = useNavigate();
 
 
+    // ==========================================
+    // LOAD ORDERS
+    // ==========================================
+
     const loadOrders = async () => {
 
         try {
@@ -67,6 +71,26 @@ function Orders() {
                 year: "numeric"
             }
         );
+    };
+
+
+    // ==========================================
+    // FORMAT ORDER NUMBER
+    // ==========================================
+
+    const getOrderNumber = (order) => {
+
+        // Use backend orderNumber if available
+
+        if (order.orderNumber) {
+            return order.orderNumber;
+        }
+
+        // Fallback for old orders
+        // Example:
+        // id = 15 → ORD-00015
+
+        return `ORD-${String(order.id).padStart(5, "0")}`;
     };
 
 
@@ -129,6 +153,7 @@ function Orders() {
     if (loading) {
 
         return (
+
             <div className="orders-loading">
 
                 <div className="loading-spinner"></div>
@@ -149,6 +174,7 @@ function Orders() {
     if (error) {
 
         return (
+
             <div className="orders-error">
 
                 <div className="orders-error-icon">
@@ -292,7 +318,7 @@ function Orders() {
                                         </span>
 
                                         <h2>
-                                            #{order.id}
+                                            Order #{getOrderNumber(order)}
                                         </h2>
 
                                     </div>
@@ -421,9 +447,11 @@ function Orders() {
                                     }
                                 >
                                     View Order
+
                                     <span>
                                         →
                                     </span>
+
                                 </button>
 
                             </div>

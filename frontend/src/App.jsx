@@ -1,8 +1,8 @@
 import {
-    BrowserRouter,
-    Routes,
-    Route,
-    Navigate
+  BrowserRouter,
+  Routes,
+  Route,
+  Navigate
 } from "react-router-dom";
 
 import Navbar from "./components/Navbar";
@@ -15,140 +15,146 @@ import Checkout from "./pages/Checkout";
 import Orders from "./pages/Orders";
 import OrderDetails from "./pages/OrderDetails";
 import OrderSuccess from "./pages/OrderSuccess";
+import ProductDetails from "./pages/ProductDetails";
 
 
 function ProtectedRoute({ children }) {
 
-    const token =
-        localStorage.getItem("token");
+  const token =
+    localStorage.getItem("token");
 
-    if (!token) {
+  if (!token) {
 
-        return (
-            <Navigate
-                to="/login"
-                replace
-            />
-        );
-    }
+    return (
+      <Navigate
+        to="/login"
+        replace
+      />
+    );
+  }
 
-    return children;
+  return children;
 }
 
 
 function App() {
 
-    return (
+  return (
 
-        <BrowserRouter>
+    <BrowserRouter>
 
-            <Navbar />
+      <Navbar />
 
-            <Routes>
+      <Routes>
 
-                {/* =========================
+        {/* =========================
                     DEFAULT
                 ========================= */}
 
-                <Route
-                    path="/"
-                    element={
-                        <Navigate
-                            to="/products"
-                            replace
-                        />
-                    }
-                />
+        <Route
+          path="/"
+          element={
+            <Navigate
+              to="/products"
+              replace
+            />
+          }
+        />
 
 
-                {/* =========================
+        {/* =========================
                     PUBLIC
                 ========================= */}
 
-                <Route
-                    path="/login"
-                    element={<Login />}
-                />
+        <Route
+          path="/login"
+          element={<Login />}
+        />
 
-                <Route
-                    path="/register"
-                    element={<Register />}
-                />
+        <Route
+          path="/register"
+          element={<Register />}
+        />
 
-                <Route
-                    path="/products"
-                    element={<Products />}
-                />
+        <Route
+          path="/products"
+          element={<Products />}
+        />
 
 
-                {/* =========================
+        {/* =========================
                     PROTECTED
                 ========================= */}
 
-                <Route
-                    path="/cart"
-                    element={
-                        <ProtectedRoute>
-                            <Cart />
-                        </ProtectedRoute>
-                    }
-                />
+        <Route
+          path="/cart"
+          element={
+            <ProtectedRoute>
+              <Cart />
+            </ProtectedRoute>
+          }
+        />
 
-                <Route
-                    path="/checkout"
-                    element={
-                        <ProtectedRoute>
-                            <Checkout />
-                        </ProtectedRoute>
-                    }
-                />
+        <Route
+          path="/checkout"
+          element={
+            <ProtectedRoute>
+              <Checkout />
+            </ProtectedRoute>
+          }
+        />
 
-                <Route
-                    path="/orders"
-                    element={
-                        <ProtectedRoute>
-                            <Orders />
-                        </ProtectedRoute>
-                    }
-                />
+        <Route
+          path="/orders"
+          element={
+            <ProtectedRoute>
+              <Orders />
+            </ProtectedRoute>
+          }
+        />
 
-                <Route
-                    path="/orders/:orderId"
-                    element={
-                        <ProtectedRoute>
-                            <OrderDetails />
-                        </ProtectedRoute>
-                    }
-                />
+        <Route
+          path="/orders/:orderId"
+          element={
+            <ProtectedRoute>
+              <OrderDetails />
+            </ProtectedRoute>
+          }
+        />
 
-                <Route
-                    path="/orders/success"
-                    element={
-                        <ProtectedRoute>
-                            <OrderSuccess />
-                        </ProtectedRoute>
-                    }
-                />
+        <Route
+          path="/orders/success"
+          element={
+            <ProtectedRoute>
+              <OrderSuccess />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/products/:productId"
+          element={<ProductDetails />}
+        />
 
 
-                {/* =========================
+        {/* =========================
                     FALLBACK
                 ========================= */}
 
-                <Route
-                    path="*"
-                    element={
-                        <Navigate
-                            to="/products"
-                            replace
-                        />
-                    }
-                />
+        <Route
+          path="*"
+          element={
+            <Navigate
+              to="/products"
+              replace
+            />
+          }
+        />
 
-            </Routes>
+      </Routes>
 
-        </BrowserRouter>
-    );
+    </BrowserRouter>
+  );
 }
 
 export default App;
