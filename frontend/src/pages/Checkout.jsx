@@ -22,31 +22,37 @@ function Checkout() {
     const navigate = useNavigate();
 
 
+    // =====================================================
+    // HANDLE CHECKOUT
+    // =====================================================
 
     const handleSubmit = async (event) => {
 
         event.preventDefault();
 
+        if (!shippingAddress.trim()) {
+            setError("Shipping address is required");
+            return;
+        }
+
         setLoading(true);
         setError("");
 
+
         try {
 
-            // ==========================================
-            // 1. GET USER'S EXISTING ORDERS
-            // ==========================================
+            // =================================================
+            // 1. GET USER ORDERS
+            // =================================================
 
             const orders = await getMyOrders();
 
-            console.log(
-                "User orders:",
-                orders
-            );
+            console.log("My orders:", orders);
 
 
-            // ==========================================
-            // 2. FIND EXISTING PENDING ORDER
-            // ==========================================
+            // =================================================
+            // 2. FIND PENDING ORDER
+            // =================================================
 
             let pendingOrder = orders.find(
                 (order) =>
@@ -54,15 +60,16 @@ function Checkout() {
             );
 
 
-            // ==========================================
-            // 3. CREATE NEW ORDER IF NONE EXISTS
-            // ==========================================
+            // =================================================
+            // 3. CREATE ORDER IF NO PENDING ORDER
+            // =================================================
 
             if (!pendingOrder) {
 
-                pendingOrder = await createOrder(
-                    shippingAddress
-                );
+                pendingOrder =
+                    await createOrder(
+                        shippingAddress.trim()
+                    );
 
                 console.log(
                     "New order created:",
@@ -72,37 +79,83 @@ function Checkout() {
             } else {
 
                 console.log(
-                    "Existing pending order found:",
+                    "Using existing pending order:",
                     pendingOrder
                 );
             }
 
 
-            // ==========================================
+            // =================================================
             // 4. GET EXISTING PAYMENT
-            //    OR CREATE NEW PAYMENT
-            // ==========================================
+            // =================================================
 
-            let payment;
+            let payment = null;
+
 
             try {
 
-                // Try to get an existing payment
                 payment =
                     await getPaymentByOrderId(
                         pendingOrder.id
                     );
 
                 console.log(
-                    "Existing payment found:",
+                    "Existing payment:",
                     payment
                 );
 
             } catch (paymentError) {
 
                 console.log(
-                    "No existing payment found. Creating payment..."
+                    "No existing payment found."
                 );
+
+                payment = null;
+            }
+
+
+            // =================================================
+            // 5. IF PAYMENT EXISTS
+            // =================================================
+
+            if (payment) {
+
+                // ---------------------------------------------
+                // Already paid
+                // ---------------------------------------------
+
+                if (payment.status === "PAID") {
+
+                    setError(
+                        "This order has already been paid."
+                    );
+
+                    setLoading(false);
+
+                    return;
+                }
+
+
+                // ---------------------------------------------
+                // Payment exists but Razorpay order ID missing
+                // ---------------------------------------------
+
+                if (!payment.razorpayOrderId) {
+
+                    setError(
+                        "Razorpay Order ID is missing."
+                    );
+
+                    setLoading(false);
+
+                    return;
+                }
+
+            } else {
+
+                // =================================================
+                // 6. CREATE PAYMENT
+                // =================================================
 
                 payment =
                     await createPayment(
@@ -116,9 +169,9 @@ function Checkout() {
             }
 
 
-            // ==========================================
-            // 5. CHECK PAYMENT DATA
-            // ==========================================
+            // =================================================
+            // 7. VALIDATE PAYMENT
+            // =================================================
 
             if (!payment) {
 
@@ -136,59 +189,66 @@ function Checkout() {
             }
 
 
-            // ==========================================
-            // 6. OPEN RAZORPAY CHECKOUT
-            // ==========================================
+            if (!payment.amount) {
+
+                throw new Error(
+                    "Payment amount not available"
+                );
+            }
+
+
+            // =================================================
+            // 8. OPEN RAZORPAY
+            // =================================================
 
             openRazorpayCheckout(
                 pendingOrder,
                 payment
             );
 
+
         } catch (error) {
 
             console.error(
                 "Checkout failed:",
-                error.response?.data ||
-                error.message ||
                 error
             );
 
 
-            const backendMessage =
+            const message =
                 error.response?.data?.message ||
-                error.response?.data;
+                error.response?.data ||
+                error.message ||
+                "Failed to start checkout";
 
 
             setError(
-                backendMessage ||
-                error.message ||
-                "Failed to start checkout"
+                String(message)
             );
+
 
             setLoading(false);
         }
     };
 
 
-
-    // ==================================================
-    // RAZORPAY CHECKOUT
-    // ==================================================
+    // =====================================================
+    // OPEN RAZORPAY CHECKOUT
+    // =====================================================
 
     const openRazorpayCheckout = (
         order,
         payment
     ) => {
 
-        // ----------------------------------------------
-        // Check Razorpay script
-        // ----------------------------------------------
+        // =================================================
+        // CHECK RAZORPAY SCRIPT
+        // =================================================
 
         if (!window.Razorpay) {
 
             setError(
-                "Razorpay Checkout failed to load. Please refresh the page."
+                "Razorpay Checkout failed to load."
             );
 
             setLoading(false);
@@ -197,9 +257,9 @@ function Checkout() {
         }
 
 
-        // ----------------------------------------------
-        // Check Razorpay Key
-        // ----------------------------------------------
+        // =================================================
+        // RAZORPAY KEY
+        // =================================================
 
         const razorpayKey =
             import.meta.env.VITE_RAZORPAY_KEY_ID;
@@ -217,18 +277,25 @@ function Checkout() {
         }
 
 
-        // ----------------------------------------------
-        // Create Razorpay options
-        // ----------------------------------------------
+        // =================================================
+        // AMOUNT
+        // =================================================
+
+        const amountInPaise =
+            Math.round(
+                Number(payment.amount) * 100
+            );
+
+
+        // =================================================
+        // RAZORPAY OPTIONS
+        // =================================================
 
         const options = {
 
             key: razorpayKey,
 
-            amount:
-                Math.round(
-                    Number(payment.amount) * 100
-                ),
+            amount: amountInPaise,
 
             currency: "INR",
 
@@ -241,15 +308,37 @@ function Checkout() {
                 payment.razorpayOrderId,
 
 
-            // ------------------------------------------
+            // =================================================
             // PAYMENT SUCCESS
-            // ------------------------------------------
+            // =================================================
 
             handler: async function (response) {
 
                 console.log(
-                    "Razorpay payment response:",
-                    response
+                    "================================="
+                );
+
+                console.log(
+                    "RAZORPAY PAYMENT SUCCESS"
+                );
+
+                console.log(
+                    "Payment ID:",
+                    response.razorpay_payment_id
+                );
+
+                console.log(
+                    "Order ID:",
+                    response.razorpay_order_id
+                );
+
+                console.log(
+                    "Signature:",
+                    response.razorpay_signature
+                );
+
+                console.log(
+                    "================================="
                 );
 
 
@@ -258,9 +347,30 @@ function Checkout() {
                     setError("");
 
 
-                    // ----------------------------------
-                    // Verify payment in backend
-                    // ----------------------------------
+                    // =========================================
+                    // VALIDATE RAZORPAY RESPONSE
+                    // =========================================
+
+                    if (
+                        !response.razorpay_payment_id ||
+                        !response.razorpay_order_id ||
+                        !response.razorpay_signature
+                    ) {
+
+                        throw new Error(
+                            "Invalid Razorpay payment response"
+                        );
+                    }
+
+
+                    // =========================================
+                    // VERIFY PAYMENT WITH BACKEND
+                    // =========================================
+
+                    console.log(
+                        "Sending verification request..."
+                    );
+
 
                     const verification =
                         await verifyPayment({
@@ -281,37 +391,84 @@ function Checkout() {
 
 
                     console.log(
-                        "Payment verification successful:",
+                        "Backend verification response:",
                         verification
                     );
 
 
-                    // ----------------------------------
-                    // Payment successful
-                    // ----------------------------------
+                    // =========================================
+                    // CHECK BACKEND PAYMENT STATUS
+                    // =========================================
+
+                    if (
+                        !verification ||
+                        verification.status !== "PAID"
+                    ) {
+
+                        throw new Error(
+                            "Payment verification failed. Payment is not marked as PAID."
+                        );
+                    }
+
+
+                    // =========================================
+                    // PAYMENT SUCCESS
+                    // =========================================
 
                     setLoading(false);
 
-                    navigate("/orders/success", {
-                        state: {
-                            orderId: order.id
+                    alert(
+                        "Payment successful!"
+                    );
+
+
+                    // =========================================
+                    // GO TO SUCCESS PAGE
+                    // =========================================
+
+                    navigate(
+                        "/orders/success",
+                        {
+                            state: {
+                                orderId: order.id
+                            }
                         }
-                    });
+                    );
 
 
                 } catch (verificationError) {
 
                     console.error(
-                        "Payment verification failed:",
-                        verificationError.response?.data ||
-                        verificationError.message
+                        "================================="
+                    );
+
+                    console.error(
+                        "PAYMENT VERIFICATION FAILED"
+                    );
+
+                    console.error(
+                        verificationError
+                    );
+
+                    console.error(
+                        "================================="
                     );
 
 
+                    const message =
+                        verificationError
+                            .response
+                            ?.data
+                            ?.message ||
+                        verificationError
+                            .response
+                            ?.data ||
+                        verificationError.message ||
+                        "Payment verification failed";
+
+
                     setError(
-                        verificationError.response?.data?.message ||
-                        verificationError.response?.data ||
-                        "Payment verification failed"
+                        String(message)
                     );
 
 
@@ -320,9 +477,9 @@ function Checkout() {
             },
 
 
-            // ------------------------------------------
+            // =================================================
             // PREFILL
-            // ------------------------------------------
+            // =================================================
 
             prefill: {
 
@@ -334,9 +491,9 @@ function Checkout() {
             },
 
 
-            // ------------------------------------------
+            // =================================================
             // THEME
-            // ------------------------------------------
+            // =================================================
 
             theme: {
 
@@ -345,17 +502,59 @@ function Checkout() {
         };
 
 
-        // ----------------------------------------------
-        // Create Razorpay instance
-        // ----------------------------------------------
+        // =================================================
+        // DEBUG INFORMATION
+        // =================================================
+
+        console.log(
+            "================================="
+        );
+
+        console.log(
+            "RAZORPAY CHECKOUT"
+        );
+
+        console.log(
+            "Key:",
+            razorpayKey
+        );
+
+        console.log(
+            "Amount:",
+            amountInPaise
+        );
+
+        console.log(
+            "Currency:",
+            options.currency
+        );
+
+        console.log(
+            "Application Order ID:",
+            order.id
+        );
+
+        console.log(
+            "Razorpay Order ID:",
+            payment.razorpayOrderId
+        );
+
+        console.log(
+            "================================="
+        );
+
+
+        // =================================================
+        // CREATE RAZORPAY INSTANCE
+        // =================================================
 
         const razorpay =
             new window.Razorpay(options);
 
 
-        // ----------------------------------------------
+        // =================================================
         // PAYMENT FAILED
-        // ----------------------------------------------
+        // =================================================
 
         razorpay.on(
             "payment.failed",
@@ -378,27 +577,30 @@ function Checkout() {
         );
 
 
-        // ----------------------------------------------
+        // =================================================
         // OPEN RAZORPAY
-        // ----------------------------------------------
+        // =================================================
 
         razorpay.open();
     };
 
 
-
-    // ==================================================
+    // =====================================================
     // UI
-    // ==================================================
+    // =====================================================
 
     return (
 
         <div>
 
-            <h1>Checkout</h1>
+            <h1>
+                Checkout
+            </h1>
 
 
-            <form onSubmit={handleSubmit}>
+            <form
+                onSubmit={handleSubmit}
+            >
 
                 <div>
 
@@ -406,23 +608,18 @@ function Checkout() {
                         Shipping Address
                     </label>
 
-
                     <br />
 
 
                     <textarea
                         value={shippingAddress}
-
                         onChange={(event) =>
                             setShippingAddress(
                                 event.target.value
                             )
                         }
-
                         placeholder="Enter your shipping address"
-
                         rows="5"
-
                         required
                     />
 
