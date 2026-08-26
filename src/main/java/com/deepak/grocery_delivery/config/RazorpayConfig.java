@@ -5,10 +5,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-
 @Configuration
 public class RazorpayConfig {
 
@@ -19,8 +15,12 @@ public class RazorpayConfig {
     private String keySecret;
 
     @Bean
-    public RazorpayClient razorpayClient()
-            throws Exception {
+    public RazorpayClient razorpayClient() throws Exception {
+
+        System.out.println("====================================");
+        System.out.println("RAZORPAY CONFIG LOADED");
+        System.out.println("RAZORPAY KEY ID = " + keyId);
+        System.out.println("====================================");
 
         return new RazorpayClient(
                 keyId,
