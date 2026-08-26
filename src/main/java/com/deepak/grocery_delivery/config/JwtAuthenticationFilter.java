@@ -160,6 +160,23 @@ public class JwtAuthenticationFilter
                 }
             }
 
+            System.out.println(
+                    "JWT REQUEST: "
+                            + request.getRequestURI()
+            );
+
+            System.out.println(
+                    "JWT USERNAME: "
+                            + username
+            );
+
+            System.out.println(
+                    "AUTHENTICATION: "
+                            + SecurityContextHolder
+                            .getContext()
+                            .getAuthentication()
+            );
+
 
         } catch (Exception exception) {
 

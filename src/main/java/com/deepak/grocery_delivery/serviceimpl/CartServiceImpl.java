@@ -15,6 +15,7 @@ import com.deepak.grocery_delivery.repository.UserRepository;
 import com.deepak.grocery_delivery.service.CartService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -260,6 +261,7 @@ public class CartServiceImpl implements CartService {
 
 
     @Override
+    @Transactional
     public void clearCart(String email) {
 
         User user = userRepository.findByEmail(email).orElseThrow(() -> new RuntimeException("Email does not exist"));
