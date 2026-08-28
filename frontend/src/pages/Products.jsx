@@ -393,9 +393,9 @@ function Products() {
                 1
             );
 
-            alert(
-                "Product added to cart successfully!"
-            );
+            // alert(
+            //     "Product added to cart successfully!"
+            // );
 
         } catch (error) {
 
