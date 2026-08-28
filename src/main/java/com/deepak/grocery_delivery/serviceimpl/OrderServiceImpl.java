@@ -183,49 +183,34 @@ public class OrderServiceImpl implements OrderService {
         order.setTotalAmount(totalAmount);
 
 
-        // 9. Save order first
+        // =================================================
+        // IMPORTANT
+        // =================================================
         //
-        // This generates the database ID.
+        // We are NOT generating orderNumber here.
+        //
+        // The database ID is already the global sequence.
+        //
+        // Example:
+        //
+        // ID 15 -> ORD-00015
+        // ID 16 -> ORD-00016
+        // ID 17 -> ORD-00017
+        //
+        // Therefore the database does not need a separate
+        // order_number column.
+        // =================================================
+
+
+        // 9. Save order
 
         Order savedOrder =
                 orderRepository.save(order);
 
 
-        // 10. Generate global customer-facing number
-        //
-        // Example:
-        //
-        // id = 13 -> ORD-00013
-        // id = 14 -> ORD-00014
-        // id = 15 -> ORD-00015
+        // 10. Return response
 
-        String orderNumber =
-                String.format(
-                        "ORD-%05d",
-                        savedOrder.getId()
-                );
-
-
-        // 11. Set order number
-
-        savedOrder.setOrderNumber(
-                orderNumber
-        );
-
-
-        // 12. Save again
-
-        savedOrder =
-                orderRepository.save(
-                        savedOrder
-                );
-
-
-        // 13. Return response
-
-        return mapToOrderResponse(
-                savedOrder
-        );
+        return mapToOrderResponse(savedOrder);
     }
 
 
@@ -246,10 +231,6 @@ public class OrderServiceImpl implements OrderService {
         return OrderResponse.builder()
 
                 .id(order.getId())
-
-                .orderNumber(
-                        order.getOrderNumber()
-                )
 
                 .totalAmount(
                         order.getTotalAmount()
